@@ -1,5 +1,5 @@
-config.json
-credentials.json
-token.json
-adhoc_config.py
-main_ex.py
+/config.json
+/credentials.json
+/token.json
+/adhoc_config.py
+/main_ex.py
