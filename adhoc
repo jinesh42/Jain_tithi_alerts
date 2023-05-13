@@ -4,7 +4,8 @@ import datetime
 import os.path
 import requests
 import json
-from heyoo import WhatsApp
+import sqlite3 as sq
+#from heyoo import WhatsApp
 
 
 
@@ -46,12 +47,12 @@ def main():
         # Call the Calendar API
         now = datetime.datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
         #print('Getting the upcoming 10 events')
-        events_result = service.events().list(calendarId='yja.org_s2t29hla94rej0pieuc8t17a34@group.calendar.google.com', timeMin=now,
-                                              maxResults=1, singleEvents=True,
+        events_result = service.events().list(calendarId='yja.org_s2t29hla94rej0pieuc8t17a34@group.calendar.google.com', timeMin=now,timeMax='2023-12-31T23:59:59Z',
+                                               singleEvents=True,
                                               orderBy='startTime').execute()
     
         events = events_result.get('items', [])
-        print(events)
+        #print(events)
         #page_token = None
         #calendar_list = service.calendarList().list(pageToken=page_token).execute()
         #print(calendar_list['items'])
@@ -64,14 +65,29 @@ def main():
 
         # Prints the start and name of the next 10 events
         # ...
+        con = sq.connect('tithi.db')
+        cursor = con.cursor()
+        '''create_table_tithi_dt=""" CREATE TABLE IF NOT EXISTS Tithi_dt (
+                        tithi_date date,
+                        tithi_name varchar(200),
+                        PRIMARY KEY(tithi_date)
+                        
+                        ); 
+                        """
+        cursor.execute(create_table_tithi_dt)'''
         for event in events:
             start = event['start'].get('dateTime', event['start'].get('date'))
             print(start, event['summary'])
+            cursor.execute("insert into Tithi_dt (tithi_date,tithi_name) values (?,?)", (start, event['summary']))
             #if event['summary']!='Aatham' or event['summary']!='Chaudas':
-            messenger = WhatsApp('EAAKEGEodfAgBAHKGfvZBeJE5g0ylWmJhGrIa62owxzY19X7Ae7a350SRVUh4o0EiFezPo0ZB3KgreHXXSrjPGyB1ZBmZCMz2ttZClkn7HU6jvdL0xnVJVyk3SAlGm6COnatwdUmi29ZCJ4AG9nM4jibrDPWbAZAw2n48ZCiYDmxUuwdnbfPOAjB16eJHWQhxZBtFcHZCP3D4XL6ZApjicbgrZCf6',phone_number_id='100823262930169')
+            #messenger = WhatsApp('EAAKEGEodfAgBAHKGfvZBeJE5g0ylWmJhGrIa62owxzY19X7Ae7a350SRVUh4o0EiFezPo0ZB3KgreHXXSrjPGyB1ZBmZCMz2ttZClkn7HU6jvdL0xnVJVyk3SAlGm6COnatwdUmi29ZCJ4AG9nM4jibrDPWbAZAw2n48ZCiYDmxUuwdnbfPOAjB16eJHWQhxZBtFcHZCP3D4XL6ZApjicbgrZCf6',phone_number_id='100823262930169')
                 # For sending a Text messages
-            messenger.send_message(f"Jai Jinendra!! \n Date : {start}. \n Today is {event['summary']}. \n Please do Ratri Bhojan and Kandamul tyag.", '918879453842')
+            #messenger.send_message(f"Jai Jinendra!! \n Date : {start}. \n Today is {event['summary']}. \n Please do Ratri Bhojan and Kandamul tyag.", '918879453842')
+        
+        
+        con.commit()
 
+        con.close()
     except HttpError as error:
         print('An error occurred: %s' % error)
 
